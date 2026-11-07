@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Disallow cleartext HTTP traffic by default. Pi-hole v6 uses HTTPS (with self-signed
+         or custom certs handled via per-instance certificate pinning in PiHoleApiClient). -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

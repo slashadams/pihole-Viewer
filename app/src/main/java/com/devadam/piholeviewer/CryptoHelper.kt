@@ -1,4 +1,4 @@
-package com.example.piholeviewer
+package com.devadam.piholeviewer
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec

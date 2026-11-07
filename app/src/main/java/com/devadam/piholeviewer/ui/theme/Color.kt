@@ -1,4 +1,4 @@
-package com.example.piholeviewer.ui.theme
+package com.devadam.piholeviewer.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

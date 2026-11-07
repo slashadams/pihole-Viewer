@@ -1,14 +1,19 @@
 // MainActivity.kt
-package com.example.piholeviewer
+package com.devadam.piholeviewer
 
 import android.content.Context
+import android.graphics.Color as AndroidColor
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -59,6 +64,13 @@ fun PiHoleTheme(content: @Composable () -> Unit) {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(
+                AndroidColor.TRANSPARENT,
+                AndroidColor.TRANSPARENT
+            )
+        )
         setContent {
             PiHoleTheme {
                 PiHoleApp()
@@ -178,6 +190,7 @@ fun PiHoleApp() {
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             TopAppBar(
                 title = { Text("Pi-hole Control", color = Color.White) },
@@ -210,6 +223,7 @@ fun PiHoleApp() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .consumeWindowInsets(padding)
         ) {
             if (instances.isEmpty()) {
                 Box(
@@ -366,7 +380,9 @@ fun AddInstanceDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (existingInstance != null) "Edit Pi-hole" else "Add Pi-hole") },
         text = {
-            Column {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -507,7 +523,8 @@ fun DashboardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp)
     ) {
         val totalQueries = updatedInstances.sumOf { it.stats?.dnsQueries ?: 0 }
         val totalBlocked = updatedInstances.sumOf { it.stats?.queriesBlocked ?: 0 }
@@ -627,7 +644,10 @@ fun DashboardScreen(
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
                 item {
                     StatsCard("Combined Blocked", "${String.format("%.1f", combinedPercent)}%")
                     StatsCard("Total Queries", totalQueries.toString())
@@ -1064,7 +1084,8 @@ fun QueryLogScreen(
             onClick = { loadQueryLogs() },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 8.dp),
             enabled = !isLoading
         ) {
             Text(if (isLoading) "Loading..." else "⟳ Refresh")
@@ -1087,7 +1108,7 @@ fun QueryLogScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
             ) {
                 items(queryLog) { entry ->
                     QueryLogItem(entry)
@@ -1180,7 +1201,7 @@ fun sanitizeUrl(url: String): String {
     if (!sanitized.startsWith("http://", ignoreCase = true) &&
         !sanitized.startsWith("https://", ignoreCase = true)
     ) {
-        sanitized = "http://$sanitized"
+        sanitized = "https://$sanitized"
     }
     // Strip query string or fragment if user pasted a browser URL
     sanitized = sanitized.substringBefore("?").substringBefore("#").trimEnd('/')

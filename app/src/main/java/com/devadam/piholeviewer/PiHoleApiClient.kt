@@ -1,4 +1,4 @@
-package com.example.piholeviewer
+package com.devadam.piholeviewer
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers

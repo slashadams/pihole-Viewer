@@ -1,8 +1,10 @@
-package com.example.piholeviewer
+package com.devadam.piholeviewer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -128,7 +130,8 @@ fun ListsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp)
     ) {
         // Instance Selector + Apply to All Toggle Card
         Card(
@@ -272,6 +275,7 @@ fun ListsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(lists, key = { "${it.type}:${it.address}" }) { item ->
@@ -418,7 +422,9 @@ fun AddAdlistDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add Adlist / Allowlist") },
         text = {
-            Column {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
