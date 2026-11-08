@@ -7,6 +7,15 @@ It started as one small convenience — a pause button — and grew from there. 
 personal project, built to scratch an itch, and it is being prepared for release on
 Google Play.
 
+## How this was made
+
+Most of this app was written by describing what I wanted to an AI coding assistant — first
+OpenClaw, later Antigravity wired directly into Android Studio — with me directing it and
+testing it against real Pi-holes on real hardware.
+
+That is how it was built, and it is why the dependency list is deliberately short: a handful
+of AndroidX and Compose libraries, no networking library, and no analytics.
+
 ## What it does
 
 - **Instances** — the Pi-holes you have configured, each with a name, a URL and its web admin
