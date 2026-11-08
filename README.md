@@ -13,9 +13,10 @@ Google Play.
   admin password. A selector across the top switches which one you are looking at.
 - **Dashboard** — a combined view across every instance: total queries, total blocked, the
   combined percentage, and a breakdown card for each Pi-hole.
-- **Control** — enable or disable blocking, or pause it for a set number of minutes and
-  watch the timer count down. Works either on the instance you have selected or on every
-  one of them at once.
+- **Control** — enable or disable blocking, or pause it for a set number of minutes and watch
+  the timer count down. Pausing is time-boxed: Pi-hole switches blocking back on by itself when
+  the timer expires. Disabling has no timer and stays off until you turn it back on. Either works
+  on the instance you have selected, or on every one of them at once.
 - **Query Log** — recent queries, so you can see what is actually being blocked and by
   which client. One instance at a time — switch with the selector to compare.
 - **Lists** — view and add blocklists, and trigger a gravity update. Also one instance at a
