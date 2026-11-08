@@ -14,7 +14,8 @@ OpenClaw, later Antigravity wired directly into Android Studio — with me direc
 testing it against real Pi-holes on real hardware.
 
 That is how it was built, and it is why the dependency list is deliberately short: a handful
-of AndroidX and Compose libraries, no networking library, and no analytics.
+of libraries — AndroidX, Compose, and one that renders the licence notices — with no
+networking library and no analytics anywhere.
 
 ## What it does
 
@@ -57,8 +58,9 @@ cannot verify on its own — so on first connection the app shows you that certi
 SHA-256 fingerprint and asks whether to trust that specific one. If you accept, it remembers
 it for that instance. If you decline, it will not connect: it does not quietly accept a
 certificate you did not agree to. If that certificate changes later — renewed, or a rebuilt
-Pi-hole — you will be asked again before it will connect. You can also paste a fingerprint you
-already know when adding an instance, so it will not need to ask.
+Pi-hole — you will be told that it changed and shown both the old and the new fingerprint
+before anything connects. You can also paste a fingerprint you already know when adding an
+instance, so it will not need to ask.
 
 **Plain HTTP.** You can enter an `http://` address and it will work, but the traffic —
 including the password — is unencrypted on your network. The app warns you when you do.
