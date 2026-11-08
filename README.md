@@ -9,19 +9,25 @@ Google Play.
 
 ## What it does
 
-- **Instances** — keep a list of Pi-holes, each with a name, a URL and its web admin
-  password. Work with one at a time, or act on all of them together.
-- **Control** — enable or disable blocking, on one Pi-hole or on every one of them at
-  once. Pause for a set number of minutes and watch the timer count down.
+- **Instances** — keep a list of the Pi-holes you run, each with a name, a URL and its web
+  admin password. A selector across the top switches which one you are looking at.
+- **Control** — enable or disable blocking, or pause it for a set number of minutes and
+  watch the timer count down. This is the part that works across instances: the app can
+  act on every one of them together.
 - **Dashboard** — Pi-hole's summary numbers: total queries, how many were blocked, the
   percentage, and how many domains are on the blocklist.
 - **Query Log** — recent queries, so you can see what is actually being blocked and by
-  which client.
-- **Lists** — view and add blocklists, and trigger a gravity update.
+  which client. Read one instance at a time, switching with the selector to compare.
+- **Lists** — view and add blocklists, and trigger a gravity update. Also per-instance,
+  so you switch between Pi-holes to work on each one's lists.
 
 ## Requirements
 
-- **Pi-hole v6.** This app talks to the v6 HTTP API. Pi-hole v5 is not supported.
+- **Pi-hole v6.** The app speaks the v6 REST API — `POST /api/auth` to get a session, then
+  `/api/dns/blocking`, `/api/stats/summary`, `/api/queries` and `/api/lists`. Pi-hole v5
+  served everything from a single `/admin/api.php` endpoint with a token in the query
+  string. There is nothing there for this app to call, so v5 will not work — the problem
+  is not the credential you type, it is that the endpoints do not exist.
 - **Android 8.0** (API 26) or newer.
 - The **web admin password** for the Pi-hole you want to reach. Pi-hole v6 issues a
   session from that password, and it is the same one you would type into the web
