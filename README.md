@@ -11,15 +11,15 @@ Google Play.
 
 - **Instances** — keep a list of the Pi-holes you run, each with a name, a URL and its web
   admin password. A selector across the top switches which one you are looking at.
+- **Dashboard** — a combined view across every instance: total queries, total blocked, the
+  combined percentage, and a breakdown card for each Pi-hole.
 - **Control** — enable or disable blocking, or pause it for a set number of minutes and
-  watch the timer count down. This is the part that works across instances: the app can
-  act on every one of them together.
-- **Dashboard** — Pi-hole's summary numbers: total queries, how many were blocked, the
-  percentage, and how many domains are on the blocklist.
+  watch the timer count down. Works either on the instance you have selected or on every
+  one of them at once.
 - **Query Log** — recent queries, so you can see what is actually being blocked and by
-  which client. Read one instance at a time, switching with the selector to compare.
-- **Lists** — view and add blocklists, and trigger a gravity update. Also per-instance,
-  so you switch between Pi-holes to work on each one's lists.
+  which client. One instance at a time — switch with the selector to compare.
+- **Lists** — view and add blocklists, and trigger a gravity update. Also one instance at a
+  time, so you switch between Pi-holes to work on each one's lists.
 
 ## Requirements
 
