@@ -19,8 +19,10 @@ Google Play.
   on the instance you have selected, or on every one of them at once.
 - **Query Log** — recent queries, so you can see what is actually being blocked and by
   which client. One instance at a time — switch with the selector to compare.
-- **Lists** — view and add blocklists, and trigger a gravity update. Also one instance at a
-  time, so you switch between Pi-holes to work on each one's lists.
+- **Lists** — see each Pi-hole's blocklists and allowlists, add and remove entries, toggle
+  them, and run a gravity update. You view one instance's lists at a time, but **edits apply
+  to every instance by default**: there's an "Apply changes to all instances" switch, and
+  turning it off keeps your changes on the instance you're looking at.
 
 ## Requirements
 
