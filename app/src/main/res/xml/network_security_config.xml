@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Disallow cleartext HTTP traffic by default. Pi-hole v6 uses HTTPS (with self-signed
-         or custom certs handled via per-instance certificate pinning in PiHoleApiClient). -->
-    <base-config cleartextTrafficPermitted="false" />
+    <!-- Plain HTTP is permitted so users can connect to Pi-hole instances that don't serve HTTPS.
+         Users must type http:// explicitly (bare addresses default to https://), and the UI warns
+         that the admin password is sent unencrypted. HTTPS remains the default and is protected
+         by per-instance certificate pinning in PiHoleApiClient. -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

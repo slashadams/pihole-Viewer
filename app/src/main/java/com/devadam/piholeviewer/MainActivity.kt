@@ -36,6 +36,7 @@ import java.util.UUID
 val PiHoleRed = Color(0xFF96060C)
 val PiHoleGreen = Color(0xFF3FB34F)
 val PiHoleDark = Color(0xFF231F20)
+val PiHoleWarning = Color(0xFFB26A00)
 
 private val PiHoleColorScheme = lightColorScheme(
     primary = PiHoleRed,
@@ -391,11 +392,20 @@ fun AddInstanceDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                val isHttp = isUnencryptedUrl(url)
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text("URL") },
                     placeholder = { Text("https://192.168.1.100") },
+                    supportingText = if (isHttp) {
+                        {
+                            Text(
+                                text = "⚠ Unencrypted connection. Your admin password will be sent over the network in plain text. Use https:// if your Pi-hole supports it (Pi-hole v6 does by default).",
+                                color = PiHoleWarning
+                            )
+                        }
+                    } else null,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -407,16 +417,21 @@ fun AddInstanceDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = pinnedCert,
-                    onValueChange = { pinnedCert = it },
-                    label = { Text("Pinned Cert SHA-256 (Optional)") },
-                    placeholder = { Text("Leave blank to prompt on first HTTPS connect") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                if (!isHttp) {
+                    OutlinedTextField(
+                        value = pinnedCert,
+                        onValueChange = { pinnedCert = it },
+                        label = { Text("Certificate fingerprint (optional)") },
+                        placeholder = { Text("SHA-256, e.g. 20:5E:D8:…") },
+                        supportingText = {
+                            Text("Leave blank. If your Pi-hole uses a self-signed certificate, you'll be asked to trust it the first time you connect.")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
                 Text(
-                    text = "Passwords are encrypted with the Android Keystore. For HTTPS self-signed certs, you will be asked to confirm & pin the certificate on first connect.",
+                    text = "Your password is stored encrypted on this device.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -718,6 +733,13 @@ fun InstanceStatsCard(instance: PiHoleInstance) {
                         MaterialTheme.colorScheme.error
                 )
             }
+            if (isUnencryptedUrl(instance.url)) {
+                Text(
+                    text = "⚠ Unencrypted (HTTP)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = PiHoleWarning
+                )
+            }
 
             if (instance.isOnline && instance.stats != null) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -856,7 +878,13 @@ fun InstancesScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                if (!instance.pinnedCertSha256.isNullOrBlank()) {
+                                if (isUnencryptedUrl(instance.url)) {
+                                    Text(
+                                        text = "⚠ Unencrypted (HTTP)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = PiHoleWarning
+                                    )
+                                } else if (!instance.pinnedCertSha256.isNullOrBlank()) {
                                     Text(
                                         text = "🔒 Cert Pinned (${instance.pinnedCertSha256.take(14)}…)",
                                         style = MaterialTheme.typography.labelSmall,
@@ -1195,6 +1223,10 @@ fun StatsCard(label: String, value: String) {
         }
     }
 }
+
+/** True only when the user explicitly entered http:// (bare addresses default to https://). */
+fun isUnencryptedUrl(url: String): Boolean =
+    url.trim().startsWith("http://", ignoreCase = true)
 
 fun sanitizeUrl(url: String): String {
     var sanitized = url.trim()

@@ -11,4 +11,12 @@ class ExampleUnitTest {
         assertEquals("https://pi.hole", sanitizeUrl("https://pi.hole/admin/login"))
         assertEquals("https://192.168.1.2:8443", sanitizeUrl("https://192.168.1.2:8443/api/stats?foo=bar"))
     }
+
+    @Test
+    fun isUnencryptedUrl_onlyFlagsExplicitHttp() {
+        assertTrue(isUnencryptedUrl("http://192.168.1.100"))
+        assertTrue(isUnencryptedUrl("  HTTP://pi.hole"))
+        assertFalse(isUnencryptedUrl("https://192.168.1.100"))
+        assertFalse(isUnencryptedUrl(sanitizeUrl("192.168.1.100")))
+    }
 }
