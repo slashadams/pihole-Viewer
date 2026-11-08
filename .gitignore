@@ -1,12 +1,11 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+
+# IDE state — machine-specific, changes constantly, and one of these files records
+# the connected device's serial number. Android Studio regenerates all of it.
+.idea/
+
 .DS_Store
 /build
 /captures
