@@ -56,8 +56,9 @@ you type a bare address. Pi-holes commonly serve a self-signed certificate, whic
 cannot verify on its own — so on first connection the app shows you that certificate's
 SHA-256 fingerprint and asks whether to trust that specific one. If you accept, it remembers
 it for that instance. If you decline, it will not connect: it does not quietly accept a
-certificate you did not agree to. You can also paste a known fingerprint when adding an
-instance.
+certificate you did not agree to. If that certificate changes later — renewed, or a rebuilt
+Pi-hole — you will be asked again before it will connect. You can also paste a fingerprint you
+already know when adding an instance, so it will not need to ask.
 
 **Plain HTTP.** You can enter an `http://` address and it will work, but the traffic —
 including the password — is unencrypted on your network. The app warns you when you do.
