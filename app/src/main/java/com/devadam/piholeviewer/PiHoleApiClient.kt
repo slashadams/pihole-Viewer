@@ -29,15 +29,21 @@ import javax.net.ssl.X509TrustManager
 
 /**
  * Thrown when an HTTPS Pi-hole instance presents a self-signed or untrusted certificate
- * whose SHA-256 fingerprint has not yet been pinned by the user for this instance.
+ * whose SHA-256 fingerprint has not yet been pinned by the user for this instance,
+ * or differs from the certificate fingerprint previously pinned for this instance.
  */
 class UntrustedCertException(
     val instanceId: String,
     val instanceName: String,
     val fingerprintSha256: String,
     val subjectDn: String,
-    val issuerDn: String
-) : Exception("Untrusted certificate ($fingerprintSha256) for $instanceName")
+    val issuerDn: String,
+    val previousPinnedSha256: String? = null
+) : Exception("Untrusted certificate ($fingerprintSha256) for $instanceName") {
+    val isPinMismatch: Boolean
+        get() = !previousPinnedSha256.isNullOrBlank() &&
+            !previousPinnedSha256.trim().equals(fingerprintSha256.trim(), ignoreCase = true)
+}
 
 data class PiHoleListEntry(
     val id: Int,
@@ -106,15 +112,19 @@ object PiHoleApiClient {
                 override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
                     if (chain.isNullOrEmpty()) throw CertificateException("Empty certificate chain")
                     val leaf = chain[0]
+                    val actualFp = sha256Fingerprint(leaf).uppercase(Locale.US)
+                    if (!pinnedFp.isNullOrEmpty()) {
+                        if (actualFp == pinnedFp) {
+                            // Explicitly pinned by the user for this Pi-hole instance
+                            return
+                        }
+                        untrustedCert = leaf
+                        throw CertificateException("Pinned certificate mismatch for ${instance.name}: expected $pinnedFp, got $actualFp")
+                    }
                     try {
                         systemTm.checkServerTrusted(chain, authType)
                         return
                     } catch (sysEx: CertificateException) {
-                        val actualFp = sha256Fingerprint(leaf).uppercase(Locale.US)
-                        if (!pinnedFp.isNullOrEmpty() && actualFp == pinnedFp) {
-                            // Explicitly pinned by the user for this Pi-hole instance
-                            return
-                        }
                         untrustedCert = leaf
                         throw sysEx
                     }
@@ -225,7 +235,8 @@ object PiHoleApiClient {
                     instanceName = instance.name,
                     fingerprintSha256 = sha256Fingerprint(captured),
                     subjectDn = captured.subjectX500Principal.name,
-                    issuerDn = captured.issuerX500Principal.name
+                    issuerDn = captured.issuerX500Principal.name,
+                    previousPinnedSha256 = instance.pinnedCertSha256?.takeIf { it.isNotBlank() }
                 )
             }
             throw sslEx

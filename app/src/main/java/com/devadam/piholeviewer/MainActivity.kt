@@ -22,10 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -181,6 +186,7 @@ fun PiHoleApp() {
     var selectedTab by remember { mutableStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
+    var showLicensesDialog by remember { mutableStateOf(false) }
     var pendingCertPrompt by remember { mutableStateOf<UntrustedCertException?>(null) }
 
     // Load instances on start
@@ -237,6 +243,13 @@ fun PiHoleApp() {
                                     uriHandler.openUri(PRIVACY_POLICY_URL)
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Open Source Licenses") },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    showLicensesDialog = true
+                                }
+                            )
                         }
                     }
                 }
@@ -264,6 +277,12 @@ fun PiHoleApp() {
                         TextButton(onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) }) {
                             Text(
                                 text = "Privacy Policy",
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
+                        TextButton(onClick = { showLicensesDialog = true }) {
+                            Text(
+                                text = "Open Source Licenses",
                                 textDecoration = TextDecoration.Underline
                             )
                         }
@@ -339,32 +358,91 @@ fun PiHoleApp() {
                     pinnedCertSha256 = pinnedCert.takeIf { it.isNotBlank() }
                 )
                 showAddDialog = false
-            }
+            },
+            onOpenLicenses = { showLicensesDialog = true }
         )
     }
 
-    // Per-instance Certificate Pinning Dialog (Trust-On-First-Use)
+    if (showLicensesDialog) {
+        OpenSourceLicensesDialog(onDismiss = { showLicensesDialog = false })
+    }
+
+    // Per-instance Certificate Pinning Dialog: distinguishes first-time TOFU from a changed certificate
     pendingCertPrompt?.let { certInfo ->
+        val isMismatch = certInfo.isPinMismatch
         AlertDialog(
             onDismissRequest = { pendingCertPrompt = null },
-            title = { Text("Trust Certificate for ${certInfo.instanceName}?") },
-            text = {
-                Column {
+            title = {
+                if (isMismatch) {
                     Text(
-                        text = "This Pi-hole presented a self-signed or untrusted HTTPS certificate. " +
-                            "Would you like to pin this exact certificate for ${certInfo.instanceName} only?",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "SHA-256 Fingerprint:",
-                        style = MaterialTheme.typography.labelMedium,
+                        text = "⚠ Certificate Changed for ${certInfo.instanceName}!",
+                        color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = certInfo.fingerprintSha256,
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                } else {
+                    Text("Trust Certificate for ${certInfo.instanceName}?")
+                }
+            },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    if (isMismatch) {
+                        Text(
+                            text = "WARNING: The HTTPS certificate presented by ${certInfo.instanceName} " +
+                                "does NOT match the certificate you previously pinned for this instance.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Someone may be intercepting your connection, or the certificate on your " +
+                                "Pi-hole was recently regenerated. Do not replace the pin unless you know why " +
+                                "the certificate changed.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Previously Trusted SHA-256 Fingerprint:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = certInfo.previousPinnedSha256 ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Newly Presented SHA-256 Fingerprint:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Text(
+                            text = certInfo.fingerprintSha256,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        Text(
+                            text = "This Pi-hole presented a self-signed or untrusted HTTPS certificate " +
+                                "for the first time. Would you like to pin and trust this exact certificate " +
+                                "for ${certInfo.instanceName}?",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "SHA-256 Fingerprint:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = certInfo.fingerprintSha256,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Subject: ${certInfo.subjectDn}",
@@ -373,25 +451,94 @@ fun PiHoleApp() {
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        instances = instances.map {
-                            if (it.id == certInfo.instanceId) {
-                                it.copy(pinnedCertSha256 = certInfo.fingerprintSha256)
-                            } else it
-                        }
-                        pendingCertPrompt = null
+                if (isMismatch) {
+                    Button(
+                        onClick = { pendingCertPrompt = null }
+                    ) {
+                        Text("Reject (Keep Existing Pin)")
                     }
-                ) {
-                    Text("Pin & Trust Certificate")
+                } else {
+                    Button(
+                        onClick = {
+                            instances = instances.map {
+                                if (it.id == certInfo.instanceId) {
+                                    it.copy(pinnedCertSha256 = certInfo.fingerprintSha256)
+                                } else it
+                            }
+                            pendingCertPrompt = null
+                        }
+                    ) {
+                        Text("Pin & Trust Certificate")
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { pendingCertPrompt = null }) {
-                    Text("Reject")
+                if (isMismatch) {
+                    TextButton(
+                        onClick = {
+                            instances = instances.map {
+                                if (it.id == certInfo.instanceId) {
+                                    it.copy(pinnedCertSha256 = certInfo.fingerprintSha256)
+                                } else it
+                            }
+                            pendingCertPrompt = null
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Replace Pin & Trust New")
+                    }
+                } else {
+                    TextButton(onClick = { pendingCertPrompt = null }) {
+                        Text("Reject")
+                    }
                 }
             }
         )
+    }
+}
+
+fun loadAboutLibraries(context: Context): Libs {
+    val json = context.resources.openRawResource(R.raw.aboutlibraries)
+        .bufferedReader()
+        .use { it.readText() }
+    return Libs.Builder().withJson(json).build()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Open Source Licenses", color = Color.White) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    ),
+                    actions = {
+                        TextButton(onClick = onDismiss) {
+                            Text("Close", color = Color.White)
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            LibrariesContainer(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+                librariesBlock = { ctx -> loadAboutLibraries(ctx) }
+            )
+        }
     }
 }
 
@@ -400,13 +547,19 @@ fun PiHoleApp() {
 fun AddInstanceDialog(
     onDismiss: () -> Unit,
     onAdd: (name: String, url: String, password: String, pinnedCertSha256: String) -> Unit,
-    existingInstance: PiHoleInstance? = null
+    existingInstance: PiHoleInstance? = null,
+    onOpenLicenses: (() -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
     var name by remember { mutableStateOf(existingInstance?.name ?: "") }
     var url by remember { mutableStateOf(existingInstance?.url ?: "") }
     var password by remember { mutableStateOf(existingInstance?.password ?: "") }
     var pinnedCert by remember { mutableStateOf(existingInstance?.pinnedCertSha256 ?: "") }
+    var showLocalLicenses by remember { mutableStateOf(false) }
+
+    if (showLocalLicenses) {
+        OpenSourceLicensesDialog(onDismiss = { showLocalLicenses = false })
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -466,15 +619,36 @@ fun AddInstanceDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(
-                    onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
-                    contentPadding = PaddingValues(0.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Privacy Policy",
-                        style = MaterialTheme.typography.bodySmall,
-                        textDecoration = TextDecoration.Underline
-                    )
+                    TextButton(
+                        onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Privacy Policy",
+                            style = MaterialTheme.typography.bodySmall,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                    TextButton(
+                        onClick = {
+                            if (onOpenLicenses != null) {
+                                onOpenLicenses()
+                            } else {
+                                showLocalLicenses = true
+                            }
+                        },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Open Source Licenses",
+                            style = MaterialTheme.typography.bodySmall,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
                 }
             }
         },
@@ -532,7 +706,11 @@ fun DashboardScreen(
                         instance.copy(
                             isOnline = false,
                             stats = null,
-                            lastError = "Untrusted HTTPS certificate (tap Refresh to review & pin)"
+                            lastError = if (certEx.isPinMismatch) {
+                                "⚠ Certificate changed! Does not match pinned fingerprint (tap Refresh to review)"
+                            } else {
+                                "Untrusted HTTPS certificate (tap Refresh to review & pin)"
+                            }
                         )
                     } catch (e: Exception) {
                         Log.e("PiHole", "Error loading stats for ${instance.name}", e)
@@ -852,7 +1030,11 @@ fun InstancesScreen(
                         instance.copy(
                             isOnline = false,
                             stats = null,
-                            lastError = "Untrusted HTTPS certificate"
+                            lastError = if (certEx.isPinMismatch) {
+                                "⚠ Certificate changed! Does not match pinned fingerprint"
+                            } else {
+                                "Untrusted HTTPS certificate"
+                            }
                         )
                     } catch (e: Exception) {
                         instance.copy(

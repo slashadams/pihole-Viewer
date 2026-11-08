@@ -138,4 +138,16 @@ class ExampleInstrumentedTest {
         assertEquals("block", entry.type)
         assertEquals(76737, entry.numberDomains)
     }
+
+    @Test
+    fun aboutLibraries_loadsGeneratedOpenSourceNotices() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val libs = loadAboutLibraries(appContext)
+        assertTrue("Expected bundled open source libraries", libs.libraries.isNotEmpty())
+        assertTrue("Expected bundled open source licenses", libs.licenses.isNotEmpty())
+        assertTrue(
+            "Expected AndroidX/Compose dependencies in generated notices",
+            libs.libraries.any { it.uniqueId.startsWith("androidx.") }
+        )
+    }
 }

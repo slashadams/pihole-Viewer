@@ -24,4 +24,29 @@ class ExampleUnitTest {
     fun privacyPolicyUrl_isConfigured() {
         assertEquals("https://www.dev-adam.com/pihole-viewer/privacy/", PRIVACY_POLICY_URL)
     }
+
+    @Test
+    fun untrustedCertException_distinguishesFirstUseFromPinMismatch() {
+        val firstUse = UntrustedCertException(
+            instanceId = "id-1",
+            instanceName = "Primary",
+            fingerprintSha256 = "AA:BB:CC",
+            subjectDn = "CN=pi.hole",
+            issuerDn = "CN=pi.hole",
+            previousPinnedSha256 = null
+        )
+        assertFalse(firstUse.isPinMismatch)
+
+        val changedPin = UntrustedCertException(
+            instanceId = "id-1",
+            instanceName = "Primary",
+            fingerprintSha256 = "11:22:33",
+            subjectDn = "CN=pi.hole",
+            issuerDn = "CN=pi.hole",
+            previousPinnedSha256 = "AA:BB:CC"
+        )
+        assertTrue(changedPin.isPinMismatch)
+        assertEquals("AA:BB:CC", changedPin.previousPinnedSha256)
+        assertEquals("11:22:33", changedPin.fingerprintSha256)
+    }
 }
