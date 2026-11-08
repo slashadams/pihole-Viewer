@@ -9,20 +9,20 @@ Google Play.
 
 ## What it does
 
-- **Instances** — keep a list of the Pi-holes you run, each with a name, a URL and its web
-  admin password. A selector across the top switches which one you are looking at.
+- **Instances** — the Pi-holes you have configured, each with a name, a URL and its web admin
+  password, plus its online state and any certificate warning. Add, edit and remove them here.
 - **Dashboard** — a combined view across every instance: total queries, total blocked, the
-  combined percentage, and a breakdown card for each Pi-hole.
+  combined percentage, and a card per Pi-hole.
 - **Control** — enable or disable blocking, or pause it for a set number of minutes and watch
   the timer count down. Pausing is time-boxed: Pi-hole switches blocking back on by itself when
-  the timer expires. Disabling has no timer and stays off until you turn it back on. Either works
-  on the instance you have selected, or on every one of them at once.
-- **Query Log** — recent queries, so you can see what is actually being blocked and by
-  which client. One instance at a time — switch with the selector to compare.
-- **Lists** — see each Pi-hole's blocklists and allowlists, add and remove entries, toggle
-  them, and run a gravity update. You view one instance's lists at a time, but **edits apply
-  to every instance by default**: there's an "Apply changes to all instances" switch, and
-  turning it off keeps your changes on the instance you're looking at.
+  the timer expires. Disabling has no timer and stays off until you turn it back on. Works on a
+  single Pi-hole from its card, or on every one of them at once.
+- **Query Log** — one merged feed of recent queries from every instance, newest first, each row
+  labelled with the Pi-hole it came from.
+- **Lists** — see each Pi-hole's blocklists and allowlists, add and remove entries, toggle them,
+  and run a gravity update. The "Viewing Lists From" chips choose which instance's lists you are
+  looking at, but **edits apply to every instance by default** — that's the "Apply changes to all
+  instances" switch, which starts on. Turn it off to change only the instance you're viewing.
 
 ## Requirements
 
