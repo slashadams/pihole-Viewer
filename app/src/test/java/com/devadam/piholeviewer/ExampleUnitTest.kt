@@ -19,4 +19,9 @@ class ExampleUnitTest {
         assertFalse(isUnencryptedUrl("https://192.168.1.100"))
         assertFalse(isUnencryptedUrl(sanitizeUrl("192.168.1.100")))
     }
+
+    @Test
+    fun privacyPolicyUrl_isConfigured() {
+        assertEquals("https://www.dev-adam.com/pihole-viewer/privacy/", PRIVACY_POLICY_URL)
+    }
 }

@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -37,6 +39,8 @@ val PiHoleRed = Color(0xFF96060C)
 val PiHoleGreen = Color(0xFF3FB34F)
 val PiHoleDark = Color(0xFF231F20)
 val PiHoleWarning = Color(0xFFB26A00)
+
+const val PRIVACY_POLICY_URL = "https://www.dev-adam.com/pihole-viewer/privacy/"
 
 private val PiHoleColorScheme = lightColorScheme(
     primary = PiHoleRed,
@@ -169,12 +173,14 @@ class PreferencesManager(context: Context) {
 @Composable
 fun PiHoleApp() {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val prefsManager = remember { PreferencesManager(context) }
     val scope = rememberCoroutineScope()
 
     var instances by remember { mutableStateOf(prefsManager.loadInstances()) }
     var selectedTab by remember { mutableStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showOverflowMenu by remember { mutableStateOf(false) }
     var pendingCertPrompt by remember { mutableStateOf<UntrustedCertException?>(null) }
 
     // Load instances on start
@@ -216,6 +222,23 @@ fun PiHoleApp() {
                     IconButton(onClick = { showAddDialog = true }) {
                         Text("➕", color = Color.White)
                     }
+                    Box {
+                        IconButton(onClick = { showOverflowMenu = true }) {
+                            Text("⋮", color = Color.White, style = MaterialTheme.typography.titleLarge)
+                        }
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Privacy Policy") },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    uriHandler.openUri(PRIVACY_POLICY_URL)
+                                }
+                            )
+                        }
+                    }
                 }
             )
         }
@@ -236,6 +259,13 @@ fun PiHoleApp() {
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { showAddDialog = true }) {
                             Text("Add Pi-hole")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) }) {
+                            Text(
+                                text = "Privacy Policy",
+                                textDecoration = TextDecoration.Underline
+                            )
                         }
                     }
                 }
@@ -372,6 +402,7 @@ fun AddInstanceDialog(
     onAdd: (name: String, url: String, password: String, pinnedCertSha256: String) -> Unit,
     existingInstance: PiHoleInstance? = null
 ) {
+    val uriHandler = LocalUriHandler.current
     var name by remember { mutableStateOf(existingInstance?.name ?: "") }
     var url by remember { mutableStateOf(existingInstance?.url ?: "") }
     var password by remember { mutableStateOf(existingInstance?.password ?: "") }
@@ -435,6 +466,16 @@ fun AddInstanceDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                TextButton(
+                    onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.bodySmall,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
             }
         },
         confirmButton = {
