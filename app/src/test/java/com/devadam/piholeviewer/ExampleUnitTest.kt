@@ -26,6 +26,12 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun trademarkDisclaimer_isConfigured() {
+        assertTrue(TRADEMARK_DISCLAIMER.contains("not affiliated with", ignoreCase = true))
+        assertTrue(TRADEMARK_DISCLAIMER.startsWith("Pause for Pi-hole"))
+    }
+
+    @Test
     fun untrustedCertException_distinguishesFirstUseFromPinMismatch() {
         val firstUse = UntrustedCertException(
             instanceId = "id-1",

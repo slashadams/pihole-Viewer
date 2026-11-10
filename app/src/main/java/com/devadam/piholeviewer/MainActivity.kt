@@ -46,6 +46,8 @@ val PiHoleDark = Color(0xFF231F20)
 val PiHoleWarning = Color(0xFFB26A00)
 
 const val PRIVACY_POLICY_URL = "https://www.dev-adam.com/pihole-viewer/privacy/"
+const val TRADEMARK_DISCLAIMER =
+    "Pause for Pi-hole is an independent, unofficial third-party client and is not affiliated with, endorsed by, or sponsored by the Pi-hole project."
 
 private val PiHoleColorScheme = lightColorScheme(
     primary = PiHoleRed,
@@ -187,6 +189,7 @@ fun PiHoleApp() {
     var showAddDialog by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showLicensesDialog by remember { mutableStateOf(false) }
+    var showDisclaimerDialog by remember { mutableStateOf(false) }
     var pendingCertPrompt by remember { mutableStateOf<UntrustedCertException?>(null) }
 
     // Load instances on start
@@ -206,7 +209,7 @@ fun PiHoleApp() {
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Pi-hole Control", color = Color.White) },
+                title = { Text("Pause for Pi-hole", color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White,
@@ -250,6 +253,13 @@ fun PiHoleApp() {
                                     showLicensesDialog = true
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Disclaimer") },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    showDisclaimerDialog = true
+                                }
+                            )
                         }
                     }
                 }
@@ -267,7 +277,10 @@ fun PiHoleApp() {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    ) {
                         Text("No Pi-hole instances configured")
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { showAddDialog = true }) {
@@ -286,6 +299,18 @@ fun PiHoleApp() {
                                 textDecoration = TextDecoration.Underline
                             )
                         }
+                        TextButton(onClick = { showDisclaimerDialog = true }) {
+                            Text(
+                                text = "Disclaimer",
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = TRADEMARK_DISCLAIMER,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             } else {
@@ -359,12 +384,17 @@ fun PiHoleApp() {
                 )
                 showAddDialog = false
             },
-            onOpenLicenses = { showLicensesDialog = true }
+            onOpenLicenses = { showLicensesDialog = true },
+            onOpenDisclaimer = { showDisclaimerDialog = true }
         )
     }
 
     if (showLicensesDialog) {
         OpenSourceLicensesDialog(onDismiss = { showLicensesDialog = false })
+    }
+
+    if (showDisclaimerDialog) {
+        DisclaimerDialog(onDismiss = { showDisclaimerDialog = false })
     }
 
     // Per-instance Certificate Pinning Dialog: distinguishes first-time TOFU from a changed certificate
@@ -542,13 +572,30 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
     }
 }
 
+@Composable
+fun DisclaimerDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Disclaimer") },
+        text = {
+            Text(text = TRADEMARK_DISCLAIMER)
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddInstanceDialog(
     onDismiss: () -> Unit,
     onAdd: (name: String, url: String, password: String, pinnedCertSha256: String) -> Unit,
     existingInstance: PiHoleInstance? = null,
-    onOpenLicenses: (() -> Unit)? = null
+    onOpenLicenses: (() -> Unit)? = null,
+    onOpenDisclaimer: (() -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
     var name by remember { mutableStateOf(existingInstance?.name ?: "") }
@@ -556,9 +603,13 @@ fun AddInstanceDialog(
     var password by remember { mutableStateOf(existingInstance?.password ?: "") }
     var pinnedCert by remember { mutableStateOf(existingInstance?.pinnedCertSha256 ?: "") }
     var showLocalLicenses by remember { mutableStateOf(false) }
+    var showLocalDisclaimer by remember { mutableStateOf(false) }
 
     if (showLocalLicenses) {
         OpenSourceLicensesDialog(onDismiss = { showLocalLicenses = false })
+    }
+    if (showLocalDisclaimer) {
+        DisclaimerDialog(onDismiss = { showLocalDisclaimer = false })
     }
 
     AlertDialog(
@@ -649,7 +700,28 @@ fun AddInstanceDialog(
                             textDecoration = TextDecoration.Underline
                         )
                     }
+                    TextButton(
+                        onClick = {
+                            if (onOpenDisclaimer != null) {
+                                onOpenDisclaimer()
+                            } else {
+                                showLocalDisclaimer = true
+                            }
+                        },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Disclaimer",
+                            style = MaterialTheme.typography.bodySmall,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
                 }
+                Text(
+                    text = TRADEMARK_DISCLAIMER,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         },
         confirmButton = {

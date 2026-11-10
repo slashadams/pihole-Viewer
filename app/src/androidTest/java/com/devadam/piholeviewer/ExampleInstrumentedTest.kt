@@ -21,7 +21,8 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.devadam.piholeviewer", appContext.packageName)
+        assertEquals("com.devadam.pauseforpihole", appContext.packageName)
+        assertEquals("Pause for Pi-hole", appContext.getString(R.string.app_name))
     }
 
     @Test

@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Pi-hole Viewer"
+rootProject.name = "Pause for Pi-hole"
 include(":app")

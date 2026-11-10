@@ -13,15 +13,32 @@ val keystoreProperties = Properties().apply {
         keystorePropertiesFile.inputStream().use { load(it) }
     }
 }
-val hasReleaseKeystore = keystorePropertiesFile.exists() &&
-    !keystoreProperties.getProperty("storeFile").isNullOrBlank()
+
+val releaseStoreFilePath: String? = keystoreProperties.getProperty("storeFile")
+    ?.takeIf { it.isNotBlank() }
+    ?: System.getenv("PIHOLE_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
+val releaseStorePassword: String? = keystoreProperties.getProperty("storePassword")
+    ?.takeIf { it.isNotBlank() }
+    ?: System.getenv("PIHOLE_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val releaseKeyAlias: String? = keystoreProperties.getProperty("keyAlias")
+    ?.takeIf { it.isNotBlank() }
+    ?: System.getenv("PIHOLE_KEY_ALIAS")?.takeIf { it.isNotBlank() }
+val releaseKeyPassword: String? = keystoreProperties.getProperty("keyPassword")
+    ?.takeIf { it.isNotBlank() }
+    ?: System.getenv("PIHOLE_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+
+val hasReleaseKeystore = releaseStoreFilePath != null &&
+    rootProject.file(releaseStoreFilePath).exists() &&
+    releaseStorePassword != null &&
+    releaseKeyAlias != null &&
+    releaseKeyPassword != null
 
 android {
     namespace = "com.devadam.piholeviewer"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.devadam.piholeviewer"
+        applicationId = "com.devadam.pauseforpihole"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -32,16 +49,11 @@ android {
 
     signingConfigs {
         create("release") {
-            val storeFilePath = keystoreProperties.getProperty("storeFile")
-                ?: System.getenv("PIHOLE_KEYSTORE_FILE")
-            if (!storeFilePath.isNullOrBlank()) {
-                storeFile = rootProject.file(storeFilePath)
-                storePassword = keystoreProperties.getProperty("storePassword")
-                    ?: System.getenv("PIHOLE_KEYSTORE_PASSWORD")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                    ?: System.getenv("PIHOLE_KEY_ALIAS")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                    ?: System.getenv("PIHOLE_KEY_PASSWORD")
+            if (releaseStoreFilePath != null) {
+                storeFile = rootProject.file(releaseStoreFilePath)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -54,11 +66,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val releaseSigning = signingConfigs.getByName("release")
-            signingConfig = if (releaseSigning.storeFile?.exists() == true) {
-                releaseSigning
-            } else {
-                signingConfigs.getByName("debug")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
             }
         }
     }
@@ -100,5 +109,20 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+tasks.matching {
+    it.name in setOf("packageRelease", "bundleRelease", "signReleaseBundle", "assembleRelease")
+}.configureEach {
+    doFirst {
+        if (!hasReleaseKeystore) {
+            throw GradleException(
+                "Release keystore is not configured or missing. " +
+                    "Provide storeFile, storePassword, keyAlias, and keyPassword in root keystore.properties " +
+                    "(or via PIHOLE_KEYSTORE_* environment variables) before building a release APK or AAB."
+            )
+        }
+    }
+}
+
 
 

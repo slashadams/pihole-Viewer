@@ -1,4 +1,4 @@
-# Pi-hole Viewer
+# Pause for Pi-hole
 
 An Android client for **Pi-hole v6**, so you can pause ad blocking without opening the web
 admin page on every instance you run.
