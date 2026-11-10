@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#14276B"/><stop offset="1" stop-color="#3B82F6"/></linearGradient></defs>
+  <rect width="1024" height="500" fill="url(#fg)"/>
+  <!-- mark, left third -->
+  <g transform="translate(110,105) scale(2.62)">
+    <path d="M54,17 L83,28 v24 c0,18 -13,29 -29,34 c-16,-5 -29,-16 -29,-34 V28 Z"
+          fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round"/>
+    <rect x="41" y="36" width="9" height="26" rx="4.5" fill="#FFFFFF"/>
+    <rect x="58" y="36" width="9" height="26" rx="4.5" fill="#FFFFFF"/>
+  </g>
+  <!-- text block, kept clear of the outer 60px Play overlays -->
+  <text x="452" y="212" font-family="DejaVu Sans, Arial, sans-serif" font-size="48"
+        font-weight="bold" fill="#FFFFFF">Pause for Pi-hole</text>
+  <text x="454" y="268" font-family="DejaVu Sans, Arial, sans-serif" font-size="24"
+        fill="#DBEAFE">Every instance on one dashboard.</text>
+  <text x="454" y="307" font-family="DejaVu Sans, Arial, sans-serif" font-size="24"
+        fill="#DBEAFE">Pause ad blocking with one tap.</text>
+  <text x="454" y="352" font-family="DejaVu Sans, Arial, sans-serif" font-size="22"
+        fill="#BFDBFE">No account. No cloud. No tracking.</text>
+</svg>
